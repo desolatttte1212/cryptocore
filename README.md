@@ -2,7 +2,7 @@
 
 Инструмент для шифрования и дешифрования AES-128 в режиме ECB
 
-## Установка (Mac/Linux)
+## Установка (Windows)
 ```bash
 git clone https://github.com/desolatttte1212/CryptoCore.git
 python3 -m venv venv
