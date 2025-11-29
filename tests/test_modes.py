@@ -14,9 +14,9 @@ from src.file_io import write_file, read_file
 
 class TestModes(unittest.TestCase):
     def setUp(self):
-        self.key = b'0123456789abcdef'  # 16 bytes key
+        self.key = b'0123456789abcdef'
         self.test_data = b'This is a test message for AES modes!'
-        self.long_data = b'X' * 100  # Data longer than one block
+        self.long_data = b'X' * 100
 
     def test_cbc_encrypt_decrypt(self):
         cbc = CBCMode(self.key)
@@ -26,14 +26,10 @@ class TestModes(unittest.TestCase):
             temp_input.flush()
 
             try:
-                # Encrypt
                 ciphertext = cbc.encrypt(temp_input.name)
-
-                # Write ciphertext to file
                 cipher_file = temp_input.name + '.enc'
                 write_file(cipher_file, ciphertext)
 
-                # Decrypt without providing IV (should read from file)
                 plaintext = cbc.decrypt(cipher_file)
                 self.assertEqual(self.test_data, plaintext)
 
@@ -51,14 +47,11 @@ class TestModes(unittest.TestCase):
             temp_input.flush()
 
             try:
-                # Encrypt
                 ciphertext = cfb.encrypt(temp_input.name)
 
-                # Write ciphertext to file
                 cipher_file = temp_input.name + '.enc'
                 write_file(cipher_file, ciphertext)
 
-                # Decrypt without providing IV
                 plaintext = cfb.decrypt(cipher_file)
                 self.assertEqual(self.test_data, plaintext)
 
@@ -76,14 +69,11 @@ class TestModes(unittest.TestCase):
             temp_input.flush()
 
             try:
-                # Encrypt
                 ciphertext = ofb.encrypt(temp_input.name)
 
-                # Write ciphertext to file
                 cipher_file = temp_input.name + '.enc'
                 write_file(cipher_file, ciphertext)
 
-                # Decrypt without providing IV
                 plaintext = ofb.decrypt(cipher_file)
                 self.assertEqual(self.test_data, plaintext)
 
@@ -101,14 +91,11 @@ class TestModes(unittest.TestCase):
             temp_input.flush()
 
             try:
-                # Encrypt
                 ciphertext = ctr.encrypt(temp_input.name)
 
-                # Write ciphertext to file
                 cipher_file = temp_input.name + '.enc'
                 write_file(cipher_file, ciphertext)
 
-                # Decrypt without providing IV
                 plaintext = ctr.decrypt(cipher_file)
                 self.assertEqual(self.test_data, plaintext)
 
@@ -119,8 +106,7 @@ class TestModes(unittest.TestCase):
                     os.unlink(cipher_file)
 
     def test_modes_with_provided_iv(self):
-        """Test decryption with explicitly provided IV"""
-        test_iv = b'1111111122222222'  # 16 bytes
+        test_iv = b'1111111122222222'
 
         for mode_class in [CBCMode, CFBMode, OFBMode]:
             cipher = mode_class(self.key)
@@ -130,18 +116,14 @@ class TestModes(unittest.TestCase):
                 temp_input.flush()
 
                 try:
-                    # Encrypt
                     ciphertext = cipher.encrypt(temp_input.name)
 
-                    # Extract IV from ciphertext
                     iv_from_file = ciphertext[:16]
                     ciphertext_only = ciphertext[16:]
 
-                    # Write only ciphertext (without IV)
                     cipher_file = temp_input.name + '.enc'
                     write_file(cipher_file, ciphertext_only)
 
-                    # Decrypt with provided IV
                     plaintext = cipher.decrypt(cipher_file, iv_from_file)
                     self.assertEqual(self.test_data, plaintext)
 
@@ -152,8 +134,7 @@ class TestModes(unittest.TestCase):
                         os.unlink(cipher_file)
 
     def test_partial_blocks_stream_modes(self):
-        """Test that stream modes handle partial blocks correctly"""
-        partial_data = b'Short'  # Less than one block
+        partial_data = b'Short'
 
         for mode_class in [CFBMode, OFBMode, CTRMode]:
             cipher = mode_class(self.key)
@@ -163,7 +144,6 @@ class TestModes(unittest.TestCase):
                 temp_input.flush()
 
                 try:
-                    # Encrypt and decrypt
                     ciphertext = cipher.encrypt(temp_input.name)
                     cipher_file = temp_input.name + '.enc'
                     write_file(cipher_file, ciphertext)
