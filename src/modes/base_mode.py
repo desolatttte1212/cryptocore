@@ -10,10 +10,17 @@ class BaseMode(ABC):
         self.requires_padding = True
 
     def pad(self, data):
+
         if not self.requires_padding:
             return data
 
+        if len(data) == 0:
+            return bytes([self.block_size] * self.block_size)
+
         padding_length = self.block_size - (len(data) % self.block_size)
+        if padding_length == 0:
+            padding_length = self.block_size
+
         padding = bytes([padding_length] * padding_length)
         return data + padding
 
@@ -22,15 +29,24 @@ class BaseMode(ABC):
             return data
 
         if len(data) == 0:
-            raise ValueError("Cannot unpad empty data")
+            return data
+
+        if len(data) < 1:
+            raise ValueError("Data too short for unpadding")
 
         padding_length = data[-1]
 
         if padding_length < 1 or padding_length > self.block_size:
-            raise ValueError("Invalid padding")
+            raise ValueError(f"Invalid padding length: {padding_length}")
 
-        if data[-padding_length:] != bytes([padding_length] * padding_length):
-            raise ValueError("Invalid padding")
+        if len(data) < padding_length:
+            raise ValueError("Data shorter than padding length")
+
+        expected_padding = bytes([padding_length] * padding_length)
+        actual_padding = data[-padding_length:]
+
+        if actual_padding != expected_padding:
+            raise ValueError("Invalid padding bytes")
 
         return data[:-padding_length]
 

@@ -9,7 +9,7 @@ class CBCMode(BaseMode):
         self.requires_padding = True
 
     def encrypt(self, input_file):
-        from ..file_io import read_file, write_file
+        from ..file_io import read_file
 
         plaintext = read_file(input_file)
 
@@ -48,14 +48,15 @@ class CBCMode(BaseMode):
         cipher = AES.new(self.key, AES.MODE_ECB)
 
         plaintext = b''
-        previous_block = iv
+        previous_cipher_block = iv
 
         for i in range(0, len(ciphertext), self.block_size):
             block = ciphertext[i:i + self.block_size]
 
             decrypted_block = cipher.decrypt(block)
 
-            plain_block = bytes(a ^ b for a, b in zip(decrypted_block, previous_block))
+            plain_block = bytes(a ^ b for a, b in zip(decrypted_block, previous_cipher_block))
             plaintext += plain_block
+            previous_cipher_block = block
 
         return self.unpad(plaintext)
