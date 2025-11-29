@@ -37,7 +37,6 @@ def parse_arguments():
 
 
 def validate_key(key_hex):
-    """Validate and convert hex key to bytes"""
     try:
         key_bytes = bytes.fromhex(key_hex)
         if len(key_bytes) != 16:
@@ -48,7 +47,6 @@ def validate_key(key_hex):
 
 
 def validate_iv(iv_hex):
-    """Validate and convert hex IV to bytes"""
     try:
         iv_bytes = bytes.fromhex(iv_hex)
         if len(iv_bytes) != 16:
@@ -59,7 +57,6 @@ def validate_iv(iv_hex):
 
 
 def derive_output_filename(input_file, operation):
-    """Derive output filename if not provided"""
     base_name = os.path.basename(input_file)
     if operation == 'encrypt':
         return f"{input_file}.enc"
@@ -86,10 +83,8 @@ def main():
     try:
         args = parse_arguments()
 
-        # Validate key
         key_bytes = validate_key(args.key)
 
-        # Validate IV if provided
         iv_bytes = None
         if args.iv:
             if args.encrypt:
@@ -97,26 +92,21 @@ def main():
             else:
                 iv_bytes = validate_iv(args.iv)
 
-        # Determine operation
         operation = 'encrypt' if args.encrypt else 'decrypt'
 
-        # Derive output filename if not provided
         output_file = args.output or derive_output_filename(args.input, operation)
 
-        # Get mode class and create instance
         mode_class = get_mode_class(args.mode)
         if not mode_class:
             raise ValueError(f"Unsupported mode: {args.mode}")
 
         cipher = mode_class(key_bytes)
 
-        # Perform cryptographic operation
         if args.encrypt:
             output_data = cipher.encrypt(args.input)
         else:
             output_data = cipher.decrypt(args.input, iv_bytes)
 
-        # Write output file
         write_file(output_file, output_data)
 
         print(f"Operation completed successfully: {args.input} -> {output_file}")

@@ -2,7 +2,6 @@ import os
 
 
 def read_file(file_path):
-    """Read file content as bytes"""
     try:
         with open(file_path, 'rb') as file:
             return file.read()
@@ -15,9 +14,7 @@ def read_file(file_path):
 
 
 def write_file(file_path, data):
-    """Write bytes data to file"""
     try:
-        # Create directory if it doesn't exist
         os.makedirs(os.path.dirname(file_path) if os.path.dirname(file_path) else '.',
                     exist_ok=True)
 
@@ -30,7 +27,6 @@ def write_file(file_path, data):
 
 
 def read_file_with_iv(file_path):
-    """Read file and extract IV from first 16 bytes"""
     data = read_file(file_path)
     if len(data) < 16:
         raise ValueError("Input file is too short to contain IV (minimum 16 bytes required)")
