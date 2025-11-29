@@ -1,5 +1,13 @@
 # CryptoCore
-
+## Установка(Windows)
+```bash
+git clone -b m2 https://github.com/ksesha-kr/CryptoCore.git
+cd CryptoCore
+python -m venv venv
+venv\Scripts\activate
+pip install -e .
+cryptocore --help
+```
 ## Спринт 2. Выполненные требования
 
 ### STR-1
@@ -118,3 +126,117 @@ cryptocore --algorithm aes --mode cbc --encrypt \
   --key 000102030405060708090a0b0c0d0e0f \
   --input plaintext.txt \
   --output ciphertext.bin
+  ```
+  **Дешифрование с IV из файла**
+
+```bash
+cryptocore --algorithm aes --mode cbc --decrypt \
+  --key 000102030405060708090a0b0c0d0e0f \
+  --input ciphertext.bin \
+  --output decrypted.txt
+```
+**Дешифрование с указанием IV**
+
+```bash
+cryptocore --algorithm aes --mode cbc --decrypt \
+  --key 000102030405060708090a0b0c0d0e0f \
+  --iv 00112233445566778899aabbccddeeff \
+  --input ciphertext.bin \
+  --output decrypted.txt
+  ```
+## Примеры для каждого режима
+**CBC Mode - Шифрование с паддингом**
+
+```bash
+cryptocore --algorithm aes --mode cbc --encrypt \
+  --key 000102030405060708090a0b0c0d0e0f \
+  --input document.txt \
+  --output document.cbc.enc
+  ```
+**CFB Mode - Поточный шифр без паддинга**
+
+```bash
+cryptocore --algorithm aes --mode cfb --encrypt \
+  --key 000102030405060708090a0b0c0d0e0f \
+  --input image.jpg \
+  --output image.cfb.enc
+  ```
+**OFB Mode - Генератор ключевого потока**
+
+```bash
+cryptocore --algorithm aes --mode ofb --encrypt \
+  --key 000102030405060708090a0b0c0d0e0f \
+  --input data.bin \
+  --output data.ofb.enc
+  ```
+**CTR Mode - Режим счетчика**
+
+```bash
+cryptocore --algorithm aes --mode ctr --encrypt \
+  --key 000102030405060708090a0b0c0d0e0f \
+  --input message.txt \
+  --output message.ctr.enc
+  ```
+## Тестирование
+**Запуск всех тестов**
+```bash
+python -m unittest discover tests/ -v
+```
+**Тестирование интероперабельности с OpenSSL**
+```bash
+CryptoCore → OpenSSL
+```
+**Шифруем CryptoCore:**
+
+```bash
+cryptocore --algorithm aes --mode cbc --encrypt \
+  --key 000102030405060708090a0b0c0d0e0f \
+  --input test.txt --output test.enc
+```
+**Извлекаем IV и данные:**
+
+```bash
+dd if=test.enc of=iv.bin bs=16 count=1
+dd if=test.enc of=ciphertext.bin bs=16 skip=1
+```
+**Дешифруем OpenSSL:**
+
+```bash
+openssl enc -aes-128-cbc -d \
+  -K 000102030405060708090A0B0C0D0E0F \
+  -iv $(xxd -p iv.bin | tr -d '\n') \
+  -in ciphertext.bin -out decrypted.txt
+OpenSSL → CryptoCore
+```
+**Шифруем OpenSSL:**
+
+```bash
+openssl enc -aes-128-cbc \
+  -K 000102030405060708090A0B0C0D0E0F \
+  -iv 00112233445566778899AABBCCDDEEFF \
+  -in test.txt -out openssl.enc
+  ```
+**Дешифруем CryptoCore:**
+
+```bash
+cryptocore --algorithm aes --mode cbc --decrypt \
+  --key 000102030405060708090a0b0c0d0e0f \
+  --iv 00112233445566778899aabbccddeeff \
+  --input openssl.enc --output decrypted.txt
+  ```
+**Обработка IV**
+Шифрование
+
+```python
+iv = os.urandom(16)
+ciphertext = mode.encrypt(plaintext, iv)
+write_file_with_iv(output_file, iv, ciphertext)
+Дешифрование
+```
+```python
+if args.iv:
+    iv = bytes.fromhex(args.iv)
+else:
+    iv, ciphertext = read_file_with_iv(input_file)
+plaintext = mode.decrypt(ciphertext, iv)
+```
