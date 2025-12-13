@@ -127,3 +127,11 @@ cryptocore --algorithm aes --mode cbc --decrypt --key 1a2b3c4d5e6f7890fedcba9876
 cryptocore --algorithm aes --mode cbc --encrypt --key 00000000000000000000000000000000 --input test.txt --output test.enc
 Warning: The provided key appears to be weak. Consider using a randomly generated key for better security.
 ```
+### Генерация данных для NIST STS
+```bash
+python tools/generate_nist_test_data.py --size-mb 10
+```
+### Тесты интероперабельности
+```bash
+python -m pytest tests/test_interoperability.py -v
+```
