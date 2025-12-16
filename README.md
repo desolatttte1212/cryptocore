@@ -1,207 +1,129 @@
-# CryptoCore
+# Спринт 5. Аутентификация и целостность данных (HMAC)
+## Реализованные требования
+### STR-1
+Все функции предыдущих спринтов (шифрование AES, хеширование SHA-256/SHA3-256) сохранены и работают корректно.
 
-Инструмент для шифрования и дешифрования AES-128 в режиме ECB
+### STR-2
+Добавлена папка src/mac/ с реализацией HMAC:
 
-## Установка (Windows)
+src/mac/hmac.py — HMAC по RFC 2104 на основе SHA-256
+
+### STR-3
+Обновлена документация (этот README.md).
+
+### STR-4
+Система сборки (setup.py) включает новые модули.
+
+## CLI: команда dgst с поддержкой HMAC
+### CLI-1
+Добавлена поддержка флага --hmac в подкоманде dgst:
 ```bash
-git clone https://github.com/desolatttte1212/CryptoCore.git
-python3 -m venv venv
-source venv/bin/activate
-pip install -e .
-cryptocore --help
+cryptocore dgst --algorithm sha256 --hmac --key <hex> --input file.txt
 ```
-## Спринт 1. Выполненные требования
-STR-1
-Репозиторий создан на GitHub: https://github.com/desolatttte1212/CryptoCore
 
-Ветка для разработки: m1
+### CLI-2
+При использовании --hmac аргумент --key становится обязательным
+Ключ задаётся в шестнадцатеричном формате (любой длины)
+Поддерживается только --algorithm sha256 для HMAC
 
-Полная история коммитов доступна
+### CLI-3
+HMAC несовместим с аргументами шифрования:
 
-STR-2
-README.md содержит:
-Название проекта и описание
+--key, --hmac и --verify недоступны в подкоманде crypto
+В подкоманде dgst без --hmac аргумент --key запрещён
 
-Инструкции по сборке и установке
+### CLI-4
+Формат вывода соответствует стандарту *sum:
 
-Примеры использования CLI
-
-STR-3
-setup.py - конфигурация Python пакета
-
-requirements.txt - зависимости (pycryptodome)
-
-Установка через pip install -e .
-
-STR-4 Структура проекта
 ```bash
-CryptoCore/
-├── src/
-│   ├── __init__.py
-│   ├── cli_parser.py
-│   ├── file_io.py
-│   └── modes/
-│       ├── __init__.py
-│       └── ecb.py
-├── tests/
-│   ├── __init__.py
-│   └── test_cryptocore.py
-├── setup.py
-├── README.md
-├── requirements.txt
-└── run_tests.py
+<hmac_hex> <input_file_path>
 ```
-CLI-1
-Установка через pip install -e .
 
-Доступна команда cryptocore в командной строке
+### CLI-5
+Поддерживается флаг --verify для проверки HMAC:
 
-Проверено: cryptocore --help работает корректно
-
-CLI-2
---algorithm ALGORITHM (только aes)
-
---mode MODE (только ecb)
-
---encrypt или --decrypt (обязательно один)
-
---key KEY (16-байтный ключ)
-
---input INPUT_FILE (путь к файлу)
-
---output OUTPUT_FILE (путь для результата)
-
-CLI-3
-Ключ принимается в hex-формате: 00112233445566778899aabbccddeeff
-
-Автоматическая конвертация в bytes
-
-Валидация длины (ровно 16 байт)
-
-CLI-4
-Проверка обязательных аргументов
-
-Взаимоисключающие флаги (--encrypt/--decrypt)
-
-Проверка существования входного файла
-
-Валидация формата ключа
-
-Четкие сообщения об ошибках в stderr
-
-CLI-5
-Шифрование: input.txt → input.txt.enc
-
-Дешифрование: file.enc → file.dec
-
-Автоматическое удаление расширений .enc, .crypt, .aes
-
-CRY-1
-Реализован AES-128 (128-битный блок, 128-битный ключ)
-
-Используется 16-байтный ключ
-
-Блочный размер: 16 байт
-
-CRY-2
-Используется pycryptodome библиотека
-
-Crypto.Cipher.AES для криптографических примитивов
-
-AES.new(key, AES.MODE_ECB) для создания шифра
-
-CRY-3
-Самостоятельная реализация логики ECB режима
-
-Разбивка на блоки по 16 байт
-
-Обработка каждого блока независимо
-
-Вызов AES примитивов для каждого блока
-
-CRY-4 Шифрование:
-Добавление паддинга до кратного 16 байтам
-
-padding_length = block_size - (len(data) % block_size)
-
-Заполнение байтами со значением длины паддинга
-
-Дешифрование:
-
-Валидация паддинга после расшифрования
-
-Проверка корректности байтов паддинга
-
-Удаление паддинга из данных
-
-CRY-5
-Все файлы обрабатываются как бинарные потоки
-
-Использование 'rb' и 'wb' режимов
-
-Поддержка любых типов файлов
-
-IO-1
-read_file() функция читает весь файл в память
-
-Поддержка больших файлов (в пределах доступной памяти)
-
-Бинарное чтение: open(file_path, 'rb')
-
-IO-2
-write_file() функция записывает все данные
-
-Автоматическое создание директорий если нужно
-
-Бинарная запись: open(file_path, 'wb')
-
-IO-3
-Проверка существования входного файла
-
-Обработка ошибок чтения/записи
-
-Информативные сообщения об ошибках в stderr
-
-Ненулевой код выхода при ошибках
-
-Тесты
 ```bash
-python -m unittest tests.test_cryptocore -v
-
+cryptocore dgst --algorithm sha256 --hmac --key <hex> --input file.txt --verify expected.hmac
 ```
+При совпадении: [OK] HMAC verification successful, код возврата 0
+При несовпадении: [ERROR] HMAC verification failed, код возврата 1
+
+## HMAC: реализация по RFC 2104
+### MAC-1
+HMAC реализован с нуля по стандарту RFC 2104, с использованием SHA-256 из Sprint 4.
+
+### MAC-2
+Корректная обработка ключа:
+
+Ключ длиннее 64 байт → хешируется через SHA-256
+Ключ короче 64 байт → дополняется нулями до 64 байт
+
+### MAC-3
+Точная реализация формулы:
+HMAC(K, m) = H((K ⊕ opad) ∥ H((K ⊕ ipad) ∥ m))
+где ipad = 0x36, opad = 0x5C
+
+### MAC-4
+Поддержка ключей любой длины (от 0 байт и выше).
+
+### MAC-5
+Обработка файлов чанками (8192 байт), постоянное использование памяти — O(1).
+
+## Файловый ввод/вывод
+### IO-1
+Чтение входного файла в бинарном режиме ('rb') чанками.
+
+### IO-2
+При --verify:
+Файл парсится в формате <хеш> <имя_файла>
+Имя файла игнорируется, проверяется только хеш
+Поддержка лишних пробелов и переносов
+
+### IO-3
+При использовании --output результат записывается в том же формате: <хеш> <имя_файла>
+
+## Тестирование
+### TEST-1
+Пройдены все тестовые векторы RFC 4231, Section 4.2:
+
+Test Case 1: key=0x0b*20, data="Hi There"
+Test Case 2: key="Jefe", data="what do ya want..."
+Test Case 3: key=0xaa*20, data=0xdd*50
+Test Case 4: key=0x0102...19, data=0xcd*50
+
+### TEST-2
+Успешная верификация HMAC, сгенерированного самим инструментом.
+
+### TEST-3
+Обнаружение подделки: изменение одного байта во входном файле приводит к отказу верификации.
+
+### TEST-4
+Обнаружение неверного ключа: верификация с другим ключом всегда отклоняется.
+
+### TEST-5
+Поддержка ключей:
+
+Короткий: 16 байт
+Точный: 64 байта
+Длинный: 100+ байт
+
+### TEST-6
+Корректный HMAC для пустого файла:
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+### TEST-7
+Работа с файлами >1 ГБ (проверено на 1 МБ, архитектура поддерживает любой размер).
 
 ## Примеры использования
-Шифрование:
+### Генерация HMAC
+
 ```bash
-bash
-cryptocore --algorithm aes --mode ecb --encrypt \
-  --key 00112233445566778899aabbccddeeff \
-  --input plaintext.txt --output ciphertext.bin
+cryptocore dgst --algorithm sha256 --hmac --key 00112233445566778899aabbccddeeff --input document.pdf
 ```
-
-Дешифрование:
+### Проверка HMAC
 ```bash
-bash
-cryptocore --algorithm aes --mode ecb --decrypt \
-  --key 00112233445566778899aabbccddeeff \
-  --input ciphertext.bin --output decrypted.txt
-  ```
-Тестирование полного цикла:
-```bash
-bash
-# Создайте тестовый файл
-echo "Hello, CryptoCore!" > test_input.txt
-
-# Зашифруйте
-cryptocore --algorithm aes --mode ecb --encrypt \
-  --key 000102030405060708090a0b0c0d0e0f \
-  --input test_input.txt --output test_encrypted.bin
-
-# Расшифруйте
-cryptocore --algorithm aes --mode ecb --decrypt \
-  --key 000102030405060708090a0b0c0d0e0f \
-  --input test_encrypted.bin --output test_decrypted.txt
-
-# Проверьте результат
-diff test_input.txt test_decrypted.txt
+cryptocore dgst --algorithm sha256 --hmac --key 00112233445566778899aabbccddeeff --input document.pdf --verify hmac.txt
 ```
+### Запись в файл
+```bash
+cryptocore dgst --algorithm sha256 --hmac --key 00112233445566778899aabbccddeeff --input data.bin --output data.hmac
