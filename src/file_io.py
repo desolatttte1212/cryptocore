@@ -24,3 +24,13 @@ def write_file(file_path, data):
         raise PermissionError(f"Permission denied writing to file: {file_path}")
     except Exception as e:
         raise IOError(f"Error writing to file {file_path}: {e}")
+
+
+def read_file_with_iv(file_path):
+    data = read_file(file_path)
+    if len(data) < 16:
+        raise ValueError("Input file is too short to contain IV (minimum 16 bytes required)")
+
+    iv = data[:16]
+    ciphertext = data[16:]
+    return iv, ciphertext
