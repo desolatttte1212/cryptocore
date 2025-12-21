@@ -1,1 +1,4 @@
 pycryptodome==3.20.0
+numba==0.59.1
+numpy==1.26.4
+pytest==8.2.2
